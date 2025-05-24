@@ -1,0 +1,100 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                |
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+|  \    /   O peration     | Version:  v2112
+|   \  /    A nd           | Web:      www.OpenFOAM.org
+|    \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      flowFields;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+fieldAverage
+{
+    type               fieldAverage;
+    libs ("libfieldFunctionObjects.so");
+    writeControl      writeTime;
+    resetOnRestart     false;
+    resetOnOutput      false;
+    timeStart          700;
+    timeEnd            1000;
+    fields
+    (
+        nut
+        {   
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        static(p)_coeff
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        static(p)
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }	
+        total(p)_coeff
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        vorticity
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+
+        p
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        phi
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+
+
+        U
+        {
+            mean        on;
+            prime2Mean  on;
+            base        time;
+        }
+        wallShearStress
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+	    yPlus
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+
+    );
+}
+
+
+
+
+// ************************************************************************* //

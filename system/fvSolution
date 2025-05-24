@@ -1,0 +1,116 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                |
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+|  \    /   O peration     | Version:  v2212
+|   \  /    A nd           | Web:      www.OpenFOAM.org
+|    \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver          GAMG; 
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.01;
+    }
+
+    U
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.1;
+    }
+
+    k
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.1;
+    }
+
+    omega
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.1;
+    }
+
+    Phi
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.01;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 1; // 0 Increase from 0 to help with pressure convergence
+    consistent               yes;  // Use consistent formulation
+
+    // Add momentum predictor to improve guesses
+    momentumPredictor       yes;  
+
+    // Add reference values for pressure
+    pRefCell                0;
+    pRefValue               0;
+
+    residualControl
+    {
+        p               1e-4;
+        U               1e-4;
+        "(k|omega)"     1e-4;
+    }
+}
+
+relaxationFactors
+{
+    equations
+    {
+        U               0.9; // 0.7 (Lower values (closer to 0): More stable but slower convergence)
+        k               0.9; // 0.7 Significantly reduced to address oscillations (Lower values (closer to 0): More stable but slower convergence)
+        omega           0.9; // 0.7 Keep as is since it converges well (Lower values (closer to 0): More stable but slower convergence)
+    }
+
+    fields
+    {
+        p               0.15; // 0.3 Reduced to dampen oscillations
+    }
+}
+
+// For mesh motion - keep if needed
+potentialFlow
+{
+    nNonOrthogonalCorrectors  20;
+    // pRefCell                  0;
+    // pRefValue                 0;
+}
+
+// ************************************************************************* //
+
+cache
+{
+    grad(U);
+    grad(k);                         // Added for turbulence calculations
+    grad(omega);                     // Added for turbulence calculations
+    grad(p);                         // Added for pressure gradient (important in SIMPLE)
+}
+
+// ************************************************************************* //

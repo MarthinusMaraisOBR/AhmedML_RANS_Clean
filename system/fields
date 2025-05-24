@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                |
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+|  \    /   O peration     | Version:  v2112
+|   \  /    A nd           | Web:      www.OpenFOAM.org
+|    \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+   CourantNo
+   {
+        type            CourantNo;
+        libs            ("libfieldFunctionObjects.so");
+        enabled true;
+        writeControl    writeTime;
+   }
+   vorticity
+   {
+        type            vorticity;
+        libs            ("libfieldFunctionObjects.so");
+        enabled true;
+        writeControl    writeTime;
+   }
+   yplus
+   {
+        type            yPlus;
+        libs            ("libfieldFunctionObjects.so");
+        enabled true;
+        writeControl    writeTime;
+   }
+
+   wallshearstress
+   {
+        type            wallShearStress;
+        libs            ("libfieldFunctionObjects.so");
+        enabled true;
+        writeControl    writeTime;
+   }
+    cpt
+    {
+        type                pressure;
+        libs ("libfieldFunctionObjects.so");
+        enabled             true;
+        mode           totalCoeff;
+        writeControl        writeTime;
+	p               p;
+    U               U;
+    rho             rho;
+
+    rho             rhoInf;
+    pInf            101325;
+    pRef            101325;
+    UInf            (1 0 0);
+
+    rhoInf          1;
+
+    }
+    cp
+    {
+        type                pressure;
+        libs ("libfieldFunctionObjects.so");
+        enabled             true;
+        mode           staticCoeff;
+        writeControl        writeTime;
+        p               p;
+    U               U;
+    rho             rho;
+
+    rho             rhoInf;
+    pInf            101325;
+    pRef 101325;
+    UInf            (1 0 0);
+
+    rhoInf          1;
+
+    }

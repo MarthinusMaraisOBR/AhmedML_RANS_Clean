@@ -1,0 +1,31 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                |
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+|  \    /   O peration     | Version:  v2112
+|   \  /    A nd           | Web:      www.OpenFOAM.org
+|    \/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      forceAverage;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Average
+    {
+        type        valueAverage;
+        libs        (fieldFunctionObjects);
+        writeToFile yes;
+        log         no;
+        functionObject forceCoeffs1;
+        fields      (Cd Cl Cl(f) Cl(r) Cs);
+        timeStart          700;
+        timeEnd            1000;
+	window      1000;
+	windowType approximate;
+    }    

@@ -1,0 +1,24 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # Run from this directory
+
+echo "OpenFOAM Meshing Script"
+echo "======================"
+
+# Step 0: Create initial conditions from 0.org
+echo "Step 0: Setting up initial conditions..."
+cp -r 0.org 0
+
+# Step 1: Surface Feature Extract
+echo "Step 1: Running surfaceFeatureExtract..."
+surfaceFeatureExtract > log.surfaceFeatureExtract
+
+# Step 2: Block Mesh
+echo "Step 2: Running blockMesh..."
+blockMesh > log.blockMesh
+
+# Step 3: snappyHexMesh
+echo "Step 3: Running snappyHexMesh..."
+snappyHexMesh -overwrite > log.snappyHexMesh
+
+echo "Meshing completed!"
+echo "Check log files: log.surfaceFeatureExtract, log.blockMesh, log.snappyHexMesh"

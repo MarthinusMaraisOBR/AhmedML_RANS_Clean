@@ -1,0 +1,111 @@
+#!/bin/bash
+# Enhanced cleanup script for OpenFOAM
+
+# Remove PNG files
+echo "Removing PNG files..."
+rm -f *.png
+
+# Remove all postProcessing data (except force coefficients option)
+echo "Removing postProcessing data..."
+
+# Option to keep force coefficients
+read -p "Keep force coefficient data? (y/N): " keep_forces
+if [[ ! $keep_forces =~ ^[Yy]$ ]]; then
+    echo "  Removing force coefficient data..."
+    rm -rf postProcessing/forceCoeffs1/*
+fi
+
+# Remove VTP files (cuttingPlane and surfaces)
+echo "  Removing VTP files..."
+rm -rf postProcessing/cuttingPlane/*
+rm -rf postProcessing/surfaces/*
+
+# Remove sampling data
+echo "  Removing sample data..."
+rm -rf postProcessing/sampleDict/*
+rm -rf postProcessing/sampleDict.off/*
+
+# Remove field averaging data
+echo "  Removing average field data..."
+rm -rf postProcessing/Average/*
+
+# Remove wall shear stress data
+echo "  Removing wall shear stress data..."
+rm -rf postProcessing/wallshearstress/*
+
+# Remove y+ data
+echo "  Removing y+ data..."
+rm -rf postProcessing/yplus/*
+
+echo "  PostProcessing cleanup completed"
+
+# Remove processor directories
+echo "Removing processor directories..."
+rm -rf processor*
+
+# Remove solution time directories (keep 0.org)
+echo "Removing solution files..."
+time_dirs=$(find . -maxdepth 1 -type d -regex './[0-9]+\(\.[0-9]+\)*' -not -name "0.org" | sort)
+if [ -n "$time_dirs" ]; then
+    for dir in $time_dirs; do
+        echo "  Removing $dir"
+        rm -rf "$dir"
+    done
+    echo "  Successfully removed solution files"
+else
+    echo "  No solution files found to remove"
+fi
+
+# Remove mesh-related files
+echo "Removing mesh files..."
+
+# Remove polyMesh files
+if [ -d "constant/polyMesh" ]; then
+    echo "  Removing polyMesh files"
+    rm -rf constant/polyMesh/*
+    echo "  polyMesh files removed"
+else
+    echo "  No polyMesh directory found"
+fi
+
+# Remove extended feature mesh files
+if [ -d "constant/extendedFeatureEdgeMesh" ]; then
+    echo "  Removing extendedFeatureEdgeMesh files"
+    rm -rf constant/extendedFeatureEdgeMesh
+    echo "  extendedFeatureEdgeMesh files removed"
+fi
+
+# Remove eMesh files in triSurface
+if [ -d "constant/triSurface" ]; then
+    echo "  Removing eMesh files in triSurface"
+    rm -f constant/triSurface/*.eMesh
+    echo "  eMesh files removed"
+fi
+
+# Remove snappyHexMesh temporary files
+echo "  Removing snappyHexMesh temporary files"
+rm -rf constant/cellLevel constant/pointLevel constant/surfaceIndex
+rm -rf constant/polyMesh/refinementHistory constant/polyMesh/level*
+
+# Remove dynamicCode directory if it exists
+if [ -d "dynamicCode" ]; then
+    echo "  Removing dynamicCode directory"
+    rm -rf dynamicCode
+fi
+
+# Remove log files
+echo "Removing log files..."
+rm -f log.blockMesh log.surfaceFeatureExtract log.snappyHexMesh log.checkMesh log.renumberMesh
+rm -f log.potentialFoam log.decomposePar log.simpleFoam log.reconstructPar log.foamToVTK
+
+echo "Cleanup completed!"
+
+# Show what's left in postProcessing (if anything)
+if [ -d "postProcessing" ]; then
+    echo ""
+    echo "Remaining in postProcessing:"
+    find postProcessing/ -type f | head -5
+    if [ $(find postProcessing/ -type f | wc -l) -gt 5 ]; then
+        echo "... and $(find postProcessing/ -type f | wc -l) total files"
+    fi
+fi

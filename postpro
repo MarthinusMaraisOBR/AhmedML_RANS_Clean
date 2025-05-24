@@ -1,0 +1,652 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source OpenFOAM environment
+source /usr/lib/openfoam/openfoam2412/etc/bashrc
+
+echo "OpenFOAM Post-Processing Script"
+echo "==============================="
+
+# Step 1: Reconstruct case
+echo "Step 1: Reconstructing case..."
+# Replace the reconstruction line in your postpro script with:
+reconstructPar -time 1000 > log.reconstructPar
+
+# Step 2: Create residual plots
+echo "Step 2: Creating residual plots..."
+
+# Extract residual data (limited to 1000 iterations)
+echo "  Extracting residual data..."
+grep "Solving for p" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > p_residuals.dat
+grep "Solving for Ux" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > Ux_residuals.dat
+grep "Solving for Uy" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > Uy_residuals.dat
+grep "Solving for Uz" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > Uz_residuals.dat
+grep "Solving for k" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > k_residuals.dat
+grep "Solving for omega" log.simpleFoam | grep "Initial residual" | cut -d "=" -f2 | cut -d "," -f1 | head -1000 > omega_residuals.dat
+
+
+# Create residual plots
+cat > plot_residuals.gnuplot << 'RESIDUAL_EOF'
+set terminal pngcairo enhanced size 1600,900 font ",12"
+
+# Full residuals plot
+set output 'ahmed_residuals_full.png'
+set logscale y
+set grid
+set title 'Ahmed Body Simulation - Residuals Convergence' font ',16'
+set xlabel 'Iteration' font ',14'
+set ylabel 'Initial Residual (log scale)' font ',14'
+set key outside right top font ",12"
+set yrange [1e-6:2]
+
+# Define line styles
+set style line 1 lc rgb "#0060ad" lt 1 lw 1.5  # blue for p
+set style line 2 lc rgb "#dd181f" lt 1 lw 1.5  # red for Ux
+set style line 3 lc rgb "#5e9c36" lt 1 lw 1.5  # green for Uy
+set style line 4 lc rgb "#9400d3" lt 1 lw 1.5  # purple for Uz
+set style line 5 lc rgb "#ff8c00" lt 1 lw 1.5  # orange for k
+set style line 6 lc rgb "#4b0082" lt 1 lw 1.5  # indigo for omega
+
+plot 'p_residuals.dat' using 0:1 with lines ls 1 title 'p', \
+     'Ux_residuals.dat' using 0:1 with lines ls 2 title 'Ux', \
+     'Uy_residuals.dat' using 0:1 with lines ls 3 title 'Uy', \
+     'Uz_residuals.dat' using 0:1 with lines ls 4 title 'Uz', \
+     'k_residuals.dat' using 0:1 with lines ls 5 title 'k', \
+     'omega_residuals.dat' using 0:1 with lines ls 6 title 'omega'
+
+# Final 20% convergence plot
+set output 'ahmed_residuals_final.png'
+set title 'Ahmed Body Simulation - Final Residuals Convergence (Last 20%)' font ',16'
+
+# Calculate final 20% range
+stats 'p_residuals.dat' using 0 nooutput
+start_iter = STATS_max * 0.8
+set xrange [start_iter:STATS_max]
+
+plot 'p_residuals.dat' using 0:1 with lines ls 1 title 'p', \
+     'Ux_residuals.dat' using 0:1 with lines ls 2 title 'Ux', \
+     'Uy_residuals.dat' using 0:1 with lines ls 3 title 'Uy', \
+     'Uz_residuals.dat' using 0:1 with lines ls 4 title 'Uz', \
+     'k_residuals.dat' using 0:1 with lines ls 5 title 'k', \
+     'omega_residuals.dat' using 0:1 with lines ls 6 title 'omega'
+RESIDUAL_EOF
+
+gnuplot plot_residuals.gnuplot
+echo "  Residual plots created: ahmed_residuals_full.png, ahmed_residuals_final.png"
+
+# Step 3: Create force coefficient plots
+echo "Step 3: Creating force coefficient plots..."
+
+# Define the coefficient data file (corrected path)
+COEFF_FILE="postProcessing/forceCoeffs1/0/coefficient.dat"
+
+if [ -f "$COEFF_FILE" ]; then
+    echo "  Using coefficient file: $COEFF_FILE"
+    
+    # Create force coefficient plots
+    cat > plot_coefficients.gnuplot << 'COEFF_EOF'
+set terminal pngcairo enhanced size 1600,900 font ",12"
+
+# Main force coefficients plot
+set output 'ahmed_force_coefficients.png'
+set grid
+set title 'Ahmed Body Simulation - Force Coefficients Convergence' font ',16'
+set xlabel 'Time' font ',14'
+set ylabel 'Coefficient Value' font ',14'
+set key outside right top font ",12"
+
+# Define line styles
+set style line 1 lc rgb "#0060ad" lt 1 lw 2  # blue for Drag (Cd)
+set style line 2 lc rgb "#dd181f" lt 1 lw 2  # red for Lift (Cl)
+set style line 3 lc rgb "#5e9c36" lt 1 lw 2  # green for Pitching Moment (CmPitch)
+
+# Plot main coefficients: Time(1) Cd(2) Cl(5) CmPitch(8)
+plot 'COEFF_FILE' using 1:2 with lines ls 1 title 'Drag (Cd)', \
+     'COEFF_FILE' using 1:5 with lines ls 2 title 'Lift (Cl)', \
+     'COEFF_FILE' using 1:8 with lines ls 3 title 'Pitching Moment (CmPitch)'
+
+# Final convergence plot (last 20% of simulation)
+set output 'ahmed_force_coefficients_final.png'
+set title 'Ahmed Body Simulation - Final Force Coefficients Convergence' font ',16'
+
+# Calculate final 20% range
+stats 'COEFF_FILE' using 1 nooutput
+start_time = STATS_max * 0.8
+set xrange [start_time:STATS_max]
+
+plot 'COEFF_FILE' using 1:2 with lines ls 1 title 'Drag (Cd)', \
+     'COEFF_FILE' using 1:5 with lines ls 2 title 'Lift (Cl)', \
+     'COEFF_FILE' using 1:8 with lines ls 3 title 'Pitching Moment (CmPitch)'
+
+# Individual coefficient plots
+set autoscale x
+set autoscale y
+
+# Drag coefficient
+set output 'ahmed_drag_coefficient.png'
+set title 'Ahmed Body - Drag Coefficient (Cd) Convergence' font ',16'
+set ylabel 'Drag Coefficient (Cd)' font ',14'
+plot 'COEFF_FILE' using 1:2 with lines ls 1 notitle
+
+# Lift coefficient
+set output 'ahmed_lift_coefficient.png'
+set title 'Ahmed Body - Lift Coefficient (Cl) Convergence' font ',16'
+set ylabel 'Lift Coefficient (Cl)' font ',14'
+plot 'COEFF_FILE' using 1:5 with lines ls 2 notitle
+
+# Pitching moment coefficient
+set output 'ahmed_moment_coefficient.png'
+set title 'Ahmed Body - Pitching Moment Coefficient (CmPitch) Convergence' font ',16'
+set ylabel 'Pitching Moment Coefficient (CmPitch)' font ',14'
+plot 'COEFF_FILE' using 1:8 with lines ls 3 notitle
+COEFF_EOF
+
+    # Replace COEFF_FILE placeholder with actual file path
+    sed -i "s|COEFF_FILE|$COEFF_FILE|g" plot_coefficients.gnuplot
+    
+    gnuplot plot_coefficients.gnuplot
+    echo "  Force coefficient plots created:"
+    echo "    - ahmed_force_coefficients.png"
+    echo "    - ahmed_force_coefficients_final.png"
+    echo "    - ahmed_drag_coefficient.png"
+    echo "    - ahmed_lift_coefficient.png"
+    echo "    - ahmed_moment_coefficient.png"
+    
+    # Display final coefficient values
+    echo ""
+    echo "  Final force coefficient values:"
+    tail -1 "$COEFF_FILE" | awk '{
+        printf "    Time = %.1f\n", $1
+        printf "    Cd (Drag)    = %.6f\n", $2
+        printf "    Cl (Lift)    = %.6f\n", $5
+        printf "    CmPitch      = %.6f\n", $8
+    }'
+else
+    echo "  Warning: Coefficient file not found at $COEFF_FILE"
+fi
+
+# Step 4: Generate cutting plane VTP files for iteration 1000
+echo "Step 4: Generating cutting plane VTP files for iteration 1000..."
+
+# Create temporary surfaces dictionary for cutting planes
+cat > system/surfacesDict << 'SURFACES_EOF'
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfacesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFormat vtp;
+
+surfaces
+(
+    // X-normal cutting planes (negative X)
+    slice_xneg900
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.9 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg800
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.8 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg700
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.7 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg600
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.6 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg500
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.5 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg400
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.4 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg300
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.3 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg200
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.2 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_xneg100
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (-0.1 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    // X-normal cutting planes (positive X)
+    slice_x0
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x100
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.1 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x200
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.2 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x300
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.3 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x400
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.4 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x500
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.5 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x600
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.6 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x700
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.7 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    slice_x800
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0.8 0 0);
+            normal  (1 0 0);
+        }
+    }
+    
+    // Y-normal cutting planes (negative Y)
+    slice_yneg600
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.6 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_yneg500
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.5 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_yneg400
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.4 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_yneg300
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.3 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_yneg200
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.2 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_yneg100
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 -0.1 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    // Y-normal cutting planes (positive Y)
+    slice_y0
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y100
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.1 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y200
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.2 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y300
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.3 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y400
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.4 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y500
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.5 0);
+            normal  (0 1 0);
+        }
+    }
+    
+    slice_y600
+    {
+        type            cuttingPlane;
+        planeType       pointAndNormal;
+        pointAndNormalDict
+        {
+            point   (0 0.6 0);
+            normal  (0 1 0);
+        }
+    }
+);
+
+fields (p U k omega);
+
+SURFACES_EOF
+
+# Generate cutting plane VTP files for time 1000
+surfaces -dict system/surfacesDict -time 1000 > log.surfaces_cutting
+
+# Step 5: Generate combined domain and Ahmed body surface VTP file
+echo "Step 5: Generating combined surfaces VTP file..."
+
+# Create temporary surfaces dictionary for patches
+cat > system/patchSurfacesDict << 'PATCH_EOF'
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      patchSurfacesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFormat vtp;
+
+surfaces
+(
+    // Ahmed body surface
+    ahmed_surface
+    {
+        type        patch;
+        patches     (wall);
+    }
+    
+    // Domain boundaries
+    inlet_surface
+    {
+        type        patch;
+        patches     (inlet);
+    }
+    
+    outlet_surface
+    {
+        type        patch;
+        patches     (outlet);
+    }
+    
+    ground_surface
+    {
+        type        patch;
+        patches     (ground);
+    }
+    
+    top_surface
+    {
+        type        patch;
+        patches     (top);
+    }
+    
+    sides_surface
+    {
+        type        patch;
+        patches     (sides);
+    }
+);
+
+fields (p U k omega wallShearStress);
+
+PATCH_EOF
+
+# Generate patch surface VTP files for time 1000
+surfaces -dict system/patchSurfacesDict -time 1000 > log.surfaces_patches
+
+echo "Step 6: Organizing outputs..."
+
+# Create organized directory structure
+mkdir -p VTP_Output/cutting_planes
+mkdir -p VTP_Output/surfaces
+mkdir -p Plots
+
+# Move cutting plane files
+if [ -d "surfaces" ]; then
+    mv surfaces/1000/*.vtp VTP_Output/cutting_planes/ 2>/dev/null || echo "No cutting plane VTP files found"
+fi
+
+# Move surface files  
+if [ -d "surfaces" ]; then
+    mv surfaces/1000/*.vtp VTP_Output/surfaces/ 2>/dev/null || echo "No surface VTP files found"
+fi
+
+# Move plot files
+mv ahmed_*.png Plots/ 2>/dev/null || echo "No plot files to organize"
+
+# Clean up temporary files
+rm -f system/surfacesDict system/patchSurfacesDict
+rm -f plot_residuals.gnuplot plot_coefficients.gnuplot
+rm -f *_residuals.dat
+
+echo "Post-processing completed!"
+echo ""
+echo "Generated outputs:"
+echo "  - Plots: Plots/"
+echo "    * Residual plots (full and final convergence)"
+echo "    * Force coefficient plots (individual and combined)"
+echo "  - VTP files:"
+echo "    * Cutting planes: VTP_Output/cutting_planes/ (31 files)"
+echo "    * Domain/Ahmed surfaces: VTP_Output/surfaces/ (6 files)"
+echo ""
+echo "Check log files: log.reconstructPar, log.surfaces_cutting, log.surfaces_patches"

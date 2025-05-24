@@ -1,0 +1,44 @@
+#!/bin/bash
+#SBATCH --job-name=run
+#SBATCH --ntasks=144
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=96
+#SBATCH --output=%x_%j.out
+#SBATCH --partition=hpc6a
+#SBATCH --exclusive
+module load intelmpi
+#module load libfabric-aws
+export I_MPI_PIN_PROCESSOR_EXCLUDE_LIST=3,7,11,15,19,23,27,31,35,39,43,47,51,55,59,63,67,71,75,79,83,87,91,95
+export I_MPI_FABRICS=shm:ofi
+export I_MPI_OFI_PROVIDER=efa
+export FI_EFA_FORK_SAFE=1
+source /shared/OpenFOAM-intel/OpenFOAM-v2212/etc/bashrc
+scontrol show nodes $SLURM_NODELIST | grep NodeHostName= | awk '{print $2}' | sed 's/NodeHostName=//' >hostfile
+#sed -i "s/$/:96/" hostfile
+HOSTFILE=hostfile
+sudo yum update --security -y
+sudo yum install gnuplot -y
+surfaceFeatureExtract  > ./log/surfaceFeatureExtract.log 2>&1
+blockMesh  > ./log/blockMesh.log 2>&1
+decomposePar -decomposeParDict system/decomposeParDict.ptscotch > ./log/decomposePar.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 snappyHexMesh -parallel -overwrite -decomposeParDict system/decomposeParDict.ptscotch  > ./log/snappyHexMesh.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 renumberMesh -parallel -overwrite -constant -decomposeParDict system/decomposeParDict.ptscotch > ./log/renumberMesh.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 checkMesh -parallel -decomposeParDict system/decomposeParDict.ptscotch > ./log/checkMesh.log 2>&1
+ls -d processor* | xargs -i rm -rf ./{}/0
+ls -d processor* | xargs -i cp -r 0.org ./{}/0
+mpirun -f $HOSTFILE -np 144 -ppn 72 potentialFoam -parallel -noFunctionObjects -initialiseUBCs -decomposeParDict system/decomposeParDict.ptscotch > ./log/potentialFoam.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 applyBoundaryLayer -parallel -ybl 0.01 -decomposeParDict system/decomposeParDict.ptscotch > ./log/boundary.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 pimpleFoam -parallel  -decomposeParDict system/decomposeParDict.ptscotch > ./log/pimpleFoam.log 2>&1
+mpirun -f $HOSTFILE -np 144 -ppn 72 foamToVTK -parallel -patches ahmed -one-boundary -latestTime -noZero -no-internal -fields '(wallShearStressMean static(p)_coeffMean pMean yPlusMean)'  > ./log/vtk.log 2>&1
+mv VTK VTK-boundary
+mpirun -f $HOSTFILE -np 144 -ppn 72 foamToVTK -parallel -latestTime -noZero -no-boundary -fields '(nutMean pMean total(p)_coeffMean UPrime2Mean UMean static(p)_coeffMean vorticityMean)'  > ./log/vtk2.log 2>&1
+mv VTK VTK-volume
+tar -cvf proc.tgz processor*
+rm -rf processor*
+./plotcd.sh
+./plotcl.sh
+./plotcs.sh
+./plotclf.sh
+./plotclr.sh
+
+

@@ -1,0 +1,311 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+sampleDict
+{
+    type                sets;
+    libs                (sampling);
+    writeControl    writeTime;
+
+    interpolationScheme cellPoint;
+    setFormat           raw;
+    fields          (nutMean pMean UMean UPrime2Mean);
+    sets
+    (
+        global638
+        {
+            type            face;
+            axis            z;
+            start           (0.638 0.0001 0);
+            end             (0.638 0.0001 0.738);
+        }
+        global538
+        {
+            type            face;
+            axis            z;
+            start           (0.538 0.0001 0);
+            end             (0.538 0.0001 0.738);
+        }
+        global438
+        {
+            type            face;
+            axis            z;
+            start           (0.438 0.0001 0);
+            end             (0.438 0.0001 0.738);
+        }
+        global338
+        {
+            type            face;
+            axis            z;
+            start           (0.338 0.0001 0);
+            end             (0.338 0.0001 0.738);
+        }
+        global288
+        {
+            type            face;
+            axis            z;
+            start           (0.288 0.0001 0);
+            end             (0.288 0.0001 0.738);
+        }	
+        global238
+        {
+            type            face;
+            axis            z;
+            start           (0.238 0.0001 0);
+            end             (0.238 0.0001 0.738);
+        }
+        global188
+        {
+            type            face;
+            axis            z;
+            start           (0.188 0.0001 0);
+            end             (0.188 0.0001 0.738);
+        }	
+        global138
+        {
+            type            face;
+            axis            z;
+            start           (0.138 0.0001 0);
+            end             (0.138 0.0001 0.738);
+        }	
+        global088
+        {
+            type            face;
+            axis            z;
+            start           (0.088 0.0001 0);
+            end             (0.088 0.0001 0.738);
+        }
+        global038
+        {
+            type            face;
+            axis            z;
+            start           (0.038 0.0001 0);
+            end             (0.038 0.0001 0.738);
+        }
+        globalneg012
+        {
+            type            face;
+            axis            z;
+            start           (-0.012 0.0001 0);
+            end             (-0.012 0.0001 0.738);
+        }
+        globalneg062
+        {
+            type            face;
+            axis            z;
+            start           (-0.062 0.0001 0);
+            end             (-0.062 0.0001 0.738);
+        }
+        globalneg112
+        {
+            type            face;
+            axis            z;
+            start           (-0.112 0.0001 0);
+            end             (-0.112 0.0001 0.738);
+        }
+        globalneg162
+        {
+            type            face;
+            axis            z;
+            start           (-0.162 0.0001 0);
+            end             (-0.162 0.0001 0.738);
+        }
+        globalneg212
+        {
+            type            face;
+            axis            z;
+            start           (-0.212 0.0001 0);
+            end             (-0.212 0.0001 0.738);
+        }
+        global087focus
+        {
+            type            face;
+            axis            z;
+            start           (0.087 0.0001 0);
+            end             (0.087 0.0001 0.738);
+        }	
+        global037focus
+        {
+            type            face;
+            axis            z;
+            start           (0.037 0.0001 0);
+            end             (0.037 0.0001 0.738);
+        }	
+        global017focus
+        {
+            type            face;
+            axis            z;
+            start           (0.017 0.0001 0);
+            end             (0.017 0.0001 0.738);
+        }	
+        globalneg003hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.003 0.0001 0);
+            end             (-0.003 0.0001 0.738);
+        }	
+        globalneg023hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.023 0.0001 0);
+            end             (-0.023 0.0001 0.738);
+        }
+
+        globalneg043hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.043 0.0001 0);
+            end             (-0.043 0.0001 0.738);
+        }	
+        globalneg063hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.063 0.0001 0);
+            end             (-0.063 0.0001 0.738);
+        }
+
+        globalneg083hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.083 0.0001 0);
+            end             (-0.083 0.0001 0.738);
+        }	
+        globalneg103hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.103 0.0001 0);
+            end             (-0.103 0.0001 0.738);
+        }
+        globalneg123hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.123 0.0001 0);
+            end             (-0.123 0.0001 0.738);
+        }
+        globalneg143hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.143 0.0001 0);
+            end             (-0.143 0.0001 0.738);
+        }	
+
+        globalneg163hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.163 0.0001 0);
+            end             (-0.163 0.0001 0.738);
+        }
+        globalneg183hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.183 0.0001 0);
+            end             (-0.183 0.0001 0.738);
+        }	
+        globalneg203hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.203 0.0001 0);
+            end             (-0.203 0.0001 0.738);
+        }	
+
+        globalneg223hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.223 0.0001 0);
+            end             (-0.223 0.0001 0.738);
+        }
+
+        globalneg243hotwire
+        {
+            type            face;
+            axis            z;
+            start           (-0.243 0.0001 0);
+            end             (-0.243 0.0001 0.738);
+        }	
+        globalneg262
+        {
+            type            face;
+            axis            z;
+            start           (-0.262 0.0001 0);
+            end             (-0.262 0.0001 0.738);
+        }
+        globalneg362
+        {
+            type            face;
+            axis            z;
+            start           (-0.362 0.0001 0);
+            end             (-0.362 0.0001 0.738);
+        }	
+        globalneg562
+        {
+            type            face;
+            axis            z;
+            start           (-0.562 0.0001 0);
+            end             (-0.562 0.0001 0.738);
+        }
+	globalneg862
+        {
+            type            face;
+            axis            z;
+            start           (-0.862 0.0001 0);
+            end             (-0.862 0.0001 0.738);
+        }
+        globalneg962
+        {
+            type            face;
+            axis            z;
+            start           (-0.962 0.0001 0);
+            end             (-0.962 0.0001 0.738);
+        }
+        globalneg1062
+        {
+            type            face;
+            axis            z;
+            start           (-1.062 0.0001 0.0);
+            end             (-1.062 0.0001 0.738);
+        }	
+        globalneg1162
+        {
+            type            face;
+            axis            z;
+            start           (-1.162 0.0001 0.0);
+            end             (-1.162 0.0001 0.738);
+        }
+	globalneg1262
+        {
+            type            face;
+            axis            z;
+            start           (-1.262 0.0001 0.0);
+            end             (-1.262 0.0001 0.738);
+        }
+	globalneg1442
+        {
+            type            face;
+            axis            z;
+            start           (-1.442 0.0001 0.0);
+            end             (-1.442 0.0001 0.738);
+        }
+    );
+
+}
+
+
+
+// ************************************************************************* //

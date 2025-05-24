@@ -1,0 +1,293 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+cuttingPlane
+{
+    type            surfaces;
+    libs (sampling);
+    writeControl    runTime;
+    writeInterval   50;
+
+    surfaceFormat   vtk;
+    fields          (nutMean pMean static(p)_coeffMean total(p)_coeffMean UMean UPrime2Mean vorticityMean);
+
+    interpolationScheme cellPoint;
+
+    surfaces
+    (
+        slice_z0
+        {
+            type            cuttingPlane;
+            point       (0 0 0);
+            normal      (0 0 1);
+	    interpolate     true;
+        }
+        slice_z100
+        {
+            type            cuttingPlane;
+            point       (0 0 0.1);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_z200
+        {
+            type            cuttingPlane;
+            point       (0 0 0.2);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_z300
+        {
+            type            cuttingPlane;
+            point       (0 0 0.3);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_z400
+        {
+            type            cuttingPlane;
+            point       (0 0 0.4);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_z500
+        {
+            type            cuttingPlane;
+            point       (0 0 0.5);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_z600
+        {
+            type            cuttingPlane;
+            point       (0 0 0.6);
+            normal      (0 0 1);
+            interpolate     true;
+        }	
+        slice_y0
+        {
+            type            cuttingPlane;
+            point       (0 0 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }
+        slice_yneg400
+        {
+            type            cuttingPlane;
+            point       (0 -0.4 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }
+        slice_yneg300
+        {
+            type            cuttingPlane;
+            point       (0 -0.3 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }	
+        slice_yneg200
+        {
+            type            cuttingPlane;
+            point       (0 -0.2 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }	
+        slice_yneg100
+        {
+            type            cuttingPlane;
+            point       (0 -0.1 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }	
+        slice_y400
+        {
+            type            cuttingPlane;
+            point       (0 0.4 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }
+        slice_y300
+        {
+            type            cuttingPlane;
+            point       (0 0.3 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }
+        slice_y200
+        {
+            type            cuttingPlane;
+            point       (0 0.2 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }	
+        slice_y100
+        {
+            type            cuttingPlane;
+            point       (0 0.1 0);
+            normal      (0 1 0);
+            interpolate     true;
+        }	
+        slice_xneg1300
+        {
+            type            cuttingPlane;
+            point       (-1.3 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg1200
+        {
+            type            cuttingPlane;
+            point       (-1.2 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg1100
+        {
+            type            cuttingPlane;
+            point       (-1.1 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg1000
+        {
+            type            cuttingPlane;
+            point       (-1.0 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg900
+        {
+            type            cuttingPlane;
+            point       (-0.9 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg800
+        {
+            type            cuttingPlane;
+            point       (-0.8 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg700
+        {
+            type            cuttingPlane;
+            point       (-0.7 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg600
+        {
+            type            cuttingPlane;
+            point       (-0.6 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg500
+        {
+            type            cuttingPlane;
+            point       (-0.5 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg400
+        {
+            type            cuttingPlane;
+            point       (-0.4 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg300
+        {
+            type            cuttingPlane;
+            point       (-0.3 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+	        slice_xneg200
+        {
+            type            cuttingPlane;
+            point       (-0.2 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_xneg100
+        {
+            type            cuttingPlane;
+            point       (-0.1 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        } 
+	slice_x0
+        {
+            type            cuttingPlane;
+            point       (0 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x100
+        {
+            type            cuttingPlane;
+            point       (0.1 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x200
+        {
+            type            cuttingPlane;
+            point       (0.2 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x300
+        {
+            type            cuttingPlane;
+            point       (0.3 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x400
+        {
+            type            cuttingPlane;
+            point       (0.4 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_x500
+        {
+            type            cuttingPlane;
+            point       (0.5 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }
+        slice_x600
+        {
+            type            cuttingPlane;
+            point       (0.6 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x700
+        {
+            type            cuttingPlane;
+            point       (0.7 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+        slice_x800
+        {
+            type            cuttingPlane;
+            point       (0.8 0 0);
+            normal      (1 0 0);
+            interpolate     true;
+        }	
+    );
+}
+
+
+// ************************************************************************* //

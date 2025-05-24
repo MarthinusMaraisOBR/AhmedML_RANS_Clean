@@ -1,0 +1,69 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # Run from this directory
+
+echo "OpenFOAM Run Script"
+echo "=================="
+
+# Step 1: Initialize flow field
+echo "Step 1: Initializing flow field..."
+potentialFoam -writep > log.potentialFoam
+
+# Step 2: Decompose domain for 20 cores
+echo "Step 2: Decomposing domain for 20 cores..."
+decomposePar > log.decomposePar
+
+# Step 3: Run simulation in parallel with inactivity timeout
+echo "Step 3: Running simulation on 20 cores..."
+
+# Start simpleFoam in background
+mpirun -np 20 simpleFoam -parallel > log.simpleFoam 2>&1 &
+FOAM_PID=$!
+
+# Monitor for completion and inactivity
+echo "  Monitoring simulation (PID: $FOAM_PID)..."
+
+last_size=0
+inactive_count=0
+simulation_ended=false
+
+while kill -0 $FOAM_PID 2>/dev/null; do
+    # Check current log file size
+    if [ -f "log.simpleFoam" ]; then
+        current_size=$(wc -c < log.simpleFoam 2>/dev/null || echo 0)
+        
+        # Check if simulation has ended
+        if ! $simulation_ended && grep -q "^End" log.simpleFoam 2>/dev/null; then
+            echo "  Simulation reached 'End' - monitoring for cleanup..."
+            simulation_ended=true
+            inactive_count=0
+        fi
+        
+        # Check for activity (file size change)
+        if [ "$current_size" -gt "$last_size" ]; then
+            # Activity detected, reset counter
+            inactive_count=0
+            last_size=$current_size
+        else
+            # No activity, increment counter
+            inactive_count=$((inactive_count + 1))
+            
+            # If simulation ended and inactive for 5 seconds, terminate
+            if $simulation_ended && [ $inactive_count -ge 5 ]; then
+                echo "  No activity for 5 seconds after 'End' - terminating process..."
+                kill $FOAM_PID 2>/dev/null
+                sleep 1
+                kill -9 $FOAM_PID 2>/dev/null
+                break
+            fi
+        fi
+    fi
+    
+    sleep 1
+done
+
+# Wait for process to finish
+wait $FOAM_PID 2>/dev/null
+
+echo "Simulation completed!"
+echo "Check log files: log.potentialFoam, log.decomposePar, log.simpleFoam"
+echo "Run './postpro' to reconstruct and generate VTP files"
